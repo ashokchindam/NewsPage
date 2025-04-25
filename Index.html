@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Personal News</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 1rem; background: #f7f7f7; margin: 0; }
+    h1 { text-align: center; font-size: 1.8rem; margin-bottom: 1rem; }
+    .news-item { margin-bottom: 1.5rem; padding: 1rem; background: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    .news-item h2 { font-size: 1.1rem; margin: 0 0 0.5rem; }
+    .news-item a { text-decoration: none; color: #3366cc; word-break: break-word; }
+    #preferences { margin-bottom: 2rem; padding: 1rem; background: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    label { display: block; margin-bottom: 0.5rem; font-size: 0.95rem; }
+    button { margin-top: 0.5rem; padding: 0.5rem 1rem; border: none; border-radius: 6px; background-color: #3366cc; color: white; font-size: 1rem; cursor: pointer; }
+    button:hover { background-color: #254a9d; }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.5rem; }
+      .news-item h2 { font-size: 1rem; }
+      button { width: 100%; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <h1>My Personalized News</h1>  <div id="preferences">
+    <label>Select your interests:</label>
+    <label><input type="checkbox" value="technology" /> Technology</label>
+    <label><input type="checkbox" value="world" /> World</label>
+    <label><input type="checkbox" value="india" /> India</label>
+    <label><input type="checkbox" value="sports" /> Sports</label>
+    <label><input type="checkbox" value="cricket" /> Cricket</label>
+    <button onclick="savePreferences()">Save Preferences</button>
+  </div>  <div id="news"></div>  <script>
+    const feeds = {
+      technology: "https://feeds.bbci.co.uk/news/technology/rss.xml",
+      world: "https://feeds.bbci.co.uk/news/world/rss.xml",
+      india: "https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms",
+      sports: "https://feeds.bbci.co.uk/sport/rss.xml?edition=uk",
+      cricket: "https://www.espncricinfo.com/rss/content/story/feeds/0.xml"
+    };
+
+    function savePreferences() {
+      const selected = Array.from(document.querySelectorAll('#preferences input:checked')).map(cb => cb.value);
+      localStorage.setItem('newsPrefs', JSON.stringify(selected));
+      location.reload();
+    }
+
+    async function fetchNews() {
+      const parser = new DOMParser();
+      const prefs = JSON.parse(localStorage.getItem('newsPrefs') || '[]');
+      const newsContainer = document.getElementById('news');
+      
+      for (const topic of prefs) {
+        const url = feeds[topic];
+        try {
+          const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+          const text = await res.text();
+          const xml = parser.parseFromString(text, "text/xml");
+          const items = xml.querySelectorAll("item");
+          items.forEach((item, i) => {
+            if (i > 3) return;
+            const title = item.querySelector("title").textContent;
+            const link = item.querySelector("link").textContent;
+            const div = document.createElement("div");
+            div.className = "news-item";
+            div.innerHTML = `<h2><a href="${link}" target="_blank">${title}</a></h2>`;
+            newsContainer.appendChild(div);
+          });
+        } catch (err) {
+          console.error("Error loading", topic, err);
+        }
+      }
+    }
+
+    fetchNews();
+  </script></body>
+</html>
