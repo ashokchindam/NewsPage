@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ashok Chindam News version 5</title>
+  <title>Ashok Chindam News version 1</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 10px; color: #333; max-width: 800px; margin: auto; background: #f8f9fa; }
     h1 { text-align: center; }
@@ -18,7 +18,14 @@
   </style>
 </head>
 <body>
-  <h1>Ashok Chindam News version 5</h1>
+  <h1>Ashok Chindam News version 10</h1>
+
+  <label for="sort">Sort By:</label>
+  <select id="sort" onchange="loadNews()">
+    <option value="date">Date (Newest First)</option>
+    <option value="category">Category</option>
+    <option value="title">Title (A–Z)</option>
+  </select>
 
   <div class="preferences">
     <label><input type="checkbox" value="technology" /> Technology</label>
@@ -28,6 +35,8 @@
     <label><input type="checkbox" value="bollywood" /> Bollywood</label>
     <label><input type="checkbox" value="finance" /> Finance</label>
     <label><input type="checkbox" value="startups" /> Startups</label>
+    <label><input type="checkbox" value="telangana" /> Telangana</label>
+    <label><input type="checkbox" value="singapore" /> Singapore</label>
   </div>
 
   <button onclick="savePreferences()">Save Preferences</button>
@@ -43,7 +52,9 @@
       cricket: "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
       bollywood: "https://www.bollywoodhungama.com/rss/news.xml",
       finance: "https://www.cnbc.com/id/15839069/device/rss/rss.html",
-      startups: "https://yourstory.com/feed"
+      startups: "https://yourstory.com/feed",
+      telangana: ["https://telugu.hindustantimes.com/rss/telangana", "https://tupaki.com/rss"],
+      singapore: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=10416"
     };
 
     function getSelectedCategories() {
@@ -74,31 +85,55 @@
       }
     }
 
+    function sortNews(newsItems) {
+      const sortBy = document.getElementById("sort").value;
+      if (sortBy === "date") {
+        return newsItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+      } else if (sortBy === "title") {
+        return newsItems.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (sortBy === "category") {
+        return newsItems.sort((a, b) => a.category.localeCompare(b.category));
+      }
+      return newsItems;
+    }
+
     async function loadNews() {
       document.getElementById('news').innerHTML = "Loading...";
       const categories = getSelectedCategories();
-      const allNews = [];
+      let allNews = [];
 
       for (let category of categories) {
-        const feedUrl = feeds[category];
+        const feedUrls = Array.isArray(feeds[category]) ? feeds[category] : [feeds[category]];
 
-        try {
-          const items = await fetchFeed(feedUrl);
-          items.forEach(item => {
-            allNews.push(`
-              <div class="news-card">
-                ${item.enclosure?.link ? `<img src="${item.enclosure.link}" alt="${category} image">` : ""}
-                <a href="${item.link}" target="_blank">${item.title}</a>
-                <small><strong>${category.toUpperCase()}</strong> | ${new Date(item.pubDate).toLocaleString()}</small>
-              </div>
-            `);
-          });
-        } catch (e) {
-          console.error("Error fetching", category, e);
+        for (let feedUrl of feedUrls) {
+          try {
+            const items = await fetchFeed(feedUrl);
+            items.forEach(item => {
+              allNews.push({
+                category,
+                pubDate: item.pubDate,
+                title: item.title,
+                link: item.link,
+                image: item.enclosure?.link
+              });
+            });
+          } catch (e) {
+            console.error("Error fetching", category, e);
+          }
         }
       }
 
-      document.getElementById('news').innerHTML = allNews.length ? allNews.join('') : "<p>No news available.</p>";
+      allNews = sortNews(allNews);
+
+      document.getElementById('news').innerHTML = allNews.length
+        ? allNews.map(item => `
+            <div class="news-card">
+              ${item.image ? `<img src="${item.image}" alt="${item.category} image">` : ""}
+              <a href="${item.link}" target="_blank">${item.title}</a>
+              <small><strong>${item.category.toUpperCase()}</strong> | ${new Date(item.pubDate).toLocaleString()}</small>
+            </div>
+          `).join('')
+        : "<p>No news available.</p>";
     }
 
     restorePreferences();
