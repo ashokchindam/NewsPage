@@ -3,33 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personalized News</title>
+    <title>Personalized News (RSS)</title>
     <style>
         body { font-family: Arial, sans-serif; }
         .container { max-width: 600px; margin: auto; }
         .categories button { margin: 5px; padding: 10px; cursor: pointer; }
-        .disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>News Feed</h1>
+        <h1>News Feed (RSS)</h1>
         <div class="categories">
-            <button id="world-news-btn">World News</button>
-            <button class="disabled">Technology</button>
-            <button class="disabled">Business</button>
-            <button class="disabled">Sports</button>
-        </div>
-        <div id="news"></div>
-    </div>
-
-    <script>
-        document.getElementById("world-news-btn").addEventListener("click", fetchWorldNews);
-
-        function fetchWorldNews() {
-            let apiUrl = `https://newsapi.org/v2/top-headlines?category=world&apiKey=YOUR_API_KEY`;
-            
-            alert("Attempting to fetch World News...");
-            
-            fetch(apiUrl)
-                .then(response =>
+            <button data-category="world">World News</button>
+            <button data-category="technology">Technology</button>
+            <button data-category="business">Business</button>
+            <button data-category="cricket">Cricket</button>
+            <button data-category="india">India News</button>
+            <button data-category="bollywood">Bollywood News</button>
+            <button data-category="
