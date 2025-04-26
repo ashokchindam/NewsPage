@@ -1,139 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ashok Chindam News</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f4f4;
-      color: #333;
-    }
-    header {
-      background: #0077cc;
-      color: white;
-      text-align: center;
-      padding: 15px;
-      font-size: 20px;
-      font-weight: bold;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    .nav {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      padding: 10px;
-      gap: 10px;
-    }
-    .nav button {
-      background: #fff;
-      border: 1px solid #ccc;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .nav button.active {
-      background: #0077cc;
-      color: white;
-    }
-    .news-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 15px;
-      padding: 20px;
-    }
-    .news-card {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
-    .news-card a {
-      text-decoration: none;
-      color: #0077cc;
-      font-weight: bold;
-    }
-    .news-card small {
-      color: #555;
-    }
-    .loading {
-      text-align: center;
-      font-size: 18px;
-      margin-top: 20px;
-    }
-    @media (max-width: 600px) {
-      .news-container {
-        display: block;
-      }
-      .news-card {
-        margin-bottom: 15px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized News</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: auto; }
+        .categories button { margin: 5px; padding: 10px; cursor: pointer; }
+        .disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>News Feed</h1>
+        <div class="categories">
+            <button data-category="world">World News</button>
+            <button class="disabled">Technology</button>
+            <button class="disabled">Business</button>
+            <button class="disabled">Sports</button>
+        </div>
+        <div id="news"></div>
+    </div>
 
-  <header>Ashok Chindam News</header>
+    <script>
+        document.querySelector("button[data-category='world']").addEventListener("click", fetchWorldNews);
 
-  <div class="nav">
-    <button onclick="loadNews('general')">General</button>
-    <button onclick="loadNews('india')">India</button>
-    <button onclick="loadNews('telangana')">Telangana</button>
-    <button onclick="loadNews('cricket')">Cricket</button>
-    <button onclick="loadNews('bollywood')">Bollywood</button>
-  </div>
+        function fetchWorldNews() {
+            let apiUrl = `https://newsapi.org/v2/top-headlines?category=world&apiKey=YOUR_API_KEY`;
+            
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    displayNews(data.articles);
+                })
+                .catch(error => console.log("Error fetching world news:", error));
+        }
 
-  <div id="news" class="news-container"></div>
-  <div class="loading" id="loading">Loading news...</div>
-
-  <script>
-    const feeds = {
-      general: "https://feeds.bbci.co.uk/news/world/rss.xml",
-      india: "https://feeds.feedburner.com/NDTV",
-      telangana: "https://manatelangana.news/feed",
-      cricket: "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
-      bollywood: "https://www.bollywoodhungama.com/rss/news.xml"
-    };
-
-    async function fetchNews(category) {
-      document.getElementById('loading').style.display = "block";
-      document.getElementById('news').innerHTML = "";
-
-      try {
-        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feeds[category])}`);
-        const data = await res.json();
-        
-        let newsHtml = data.items.slice(0, 5).map(item => `
-          <div class="news-card">
-            <strong>${category.toUpperCase()}</strong>
-            <a href="${item.link}" target="_blank">${item.title}</a>
-            <small>${new Date(item.pubDate).toLocaleString()}</small>
-          </div>
-        `).join("");
-
-        document.getElementById('news').innerHTML = newsHtml;
-      } catch (error) {
-        document.getElementById('news').innerHTML = `<p>Error loading ${category} news.</p>`;
-      }
-      
-      document.getElementById('loading').style.display = "none";
-    }
-
-    function loadNews(category) {
-      document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
-      document.querySelector(`.nav button:nth-child(${Object.keys(feeds).indexOf(category.add('active');
-      fetchNews(category);
-    }
-
-    // Load default category on page load
-    loadNews('general');
-  </script>
-
+        function displayNews(articles) {
+            let newsDiv = document.getElementById("news");
+            newsDiv.innerHTML = ""; // Clear previous news
+            articles.forEach(article => {
+                let item = document.createElement(" item.innerHTML = `<h3>${article.title}</h3><p>${article.description}</p><a href="${article.url}" target="_blank">Read more</a>`;
+                newsDiv.appendChild(item);
+            });
+        }
+    </script>
 </body>
 </html>
