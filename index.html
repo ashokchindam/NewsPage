@@ -15,7 +15,7 @@
     <div class="container">
         <h1>News Feed</h1>
         <div class="categories">
-            <button data-category="world">World News</button>
+            <button id="world-news-btn">World News</button>
             <button class="disabled">Technology</button>
             <button class="disabled">Business</button>
             <button class="disabled">Sports</button>
@@ -24,27 +24,12 @@
     </div>
 
     <script>
-        document.querySelector("button[data-category='world']").addEventListener("click", fetchWorldNews);
+        document.getElementById("world-news-btn").addEventListener("click", fetchWorldNews);
 
         function fetchWorldNews() {
             let apiUrl = `https://newsapi.org/v2/top-headlines?category=world&apiKey=YOUR_API_KEY`;
             
+            alert("Attempting to fetch World News...");
+            
             fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                    displayNews(data.articles);
-                })
-                .catch(error => console.log("Error fetching world news:", error));
-        }
-
-        function displayNews(articles) {
-            let newsDiv = document.getElementById("news");
-            newsDiv.innerHTML = ""; // Clear previous news
-            articles.forEach(article => {
-                let item = document.createElement(" item.innerHTML = `<h3>${article.title}</h3><p>${article.description}</p><a href="${article.url}" target="_blank">Read more</a>`;
-                newsDiv.appendChild(item);
-            });
-        }
-    </script>
-</body>
-</html>
+                .then(response =>
