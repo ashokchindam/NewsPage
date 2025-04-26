@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ashok Chindam News version 1</title>
+  <title>Ashok Chindam News version 11</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 10px; color: #333; max-width: 800px; margin: auto; background: #f8f9fa; }
     h1 { text-align: center; }
@@ -18,7 +18,7 @@
   </style>
 </head>
 <body>
-  <h1>Ashok Chindam News version 10</h1>
+  <h1>Ashok Chindam News version 1</h1>
 
   <label for="sort">Sort By:</label>
   <select id="sort" onchange="loadNews()">
@@ -34,7 +34,6 @@
     <label><input type="checkbox" value="cricket" /> Cricket</label>
     <label><input type="checkbox" value="bollywood" /> Bollywood</label>
     <label><input type="checkbox" value="finance" /> Finance</label>
-    <label><input type="checkbox" value="startups" /> Startups</label>
     <label><input type="checkbox" value="telangana" /> Telangana</label>
     <label><input type="checkbox" value="singapore" /> Singapore</label>
   </div>
@@ -52,7 +51,6 @@
       cricket: "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
       bollywood: "https://www.bollywoodhungama.com/rss/news.xml",
       finance: "https://www.cnbc.com/id/15839069/device/rss/rss.html",
-      startups: "https://yourstory.com/feed",
       telangana: ["https://telugu.hindustantimes.com/rss/telangana", "https://tupaki.com/rss"],
       singapore: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=10416"
     };
