@@ -1,140 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Personalized News</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ashok Chindam News</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 10px;
+      margin: 0;
+      padding: 0;
       background: #f4f4f4;
       color: #333;
-      max-width: 800px;
-      margin: auto;
     }
-    h1 {
+    header {
+      background: #0077cc;
+      color: white;
       text-align: center;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
-    .preferences {
-      margin-bottom: 15px;
+    .nav {
       display: flex;
+      justify-content: center;
       flex-wrap: wrap;
+      padding: 10px;
       gap: 10px;
     }
-    label {
+    .nav button {
       background: #fff;
-      padding: 8px 12px;
-      border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 14px;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 16px;
-      font-size: 16px;
-      background-color: #0077cc;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
+      padding: 10px 15px;
       cursor: pointer;
+      border-radius: 5px;
+      font-size: 16px;
     }
-    .news-item {
-      background: #fff;
-      padding: 12px;
-      margin-bottom: 15px;
-      border-radius: 8px;
+    .nav button.active {
+      background: #0077cc;
+      color: white;
+    }
+    .news-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+    .news-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
       box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
-    .news-item a {
+    .news-card a {
       text-decoration: none;
       color: #0077cc;
       font-weight: bold;
     }
-    .news-item small {
+    .news-card small {
       color: #555;
+    }
+    .loading {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    @media (max-width: 600px) {
+      .news-container {
+        display: block;
+      }
+      .news-card {
+        margin-bottom: 15px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>My Personalized News</h1>
 
-  <div class="preferences">
-    <label><input type="checkbox" value="technology" /> Technology</label>
-    <label><input type="checkbox" value="world" /> World</label>
-    <label><input type="checkbox" value="india" /> India</label>
-    <label><input type="checkbox" value="cricket" /> Cricket</label>
-    <label><input type="checkbox" value="bollywood" /> Bollywood</label>
-    <label><input type="checkbox" value="finance" /> Finance</label>
-    <label><input type="checkbox" value="startups" /> Startups</label>
+  <header>Ashok Chindam News</header>
+
+  <div class="nav">
+    <button onclick="loadNews('general')">General</button>
+    <button onclick="loadNews('india')">India</button>
+    <button onclick="loadNews('telangana')">Telangana</button>
+    <button onclick="loadNews('cricket')">Cricket</button>
+    <button onclick="loadNews('bollywood')">Bollywood</button>
   </div>
 
-  <button onclick="savePreferences()">Save Preferences</button>
-  <div id="news"></div>
+  <div id="news" class="news-container"></div>
+  <div class="loading" id="loading">Loading news...</div>
 
   <script>
     const feeds = {
-      technology: "https://feeds.bbci.co.uk/news/technology/rss.xml",
-      world: "https://feeds.bbci.co.uk/news/world/rss.xml",
-      india: "https://feeds.feedburner.com/ndtvnews-india-news",
+      general: "https://feeds.bbci.co.uk/news/world/rss.xml",
+      india: "https://feeds.feedburner.com/NDTV",
+      telangana: "https://manatelangana.news/feed",
       cricket: "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
-      bollywood: "https://www.bollywoodhungama.com/rss/news.xml",
-      finance: "https://www.moneycontrol.com/rss/latestnews.xml",
-      startups: "https://yourstory.com/feed"
+      bollywood: "https://www.bollywoodhungama.com/rss/news.xml"
     };
 
-    function getSelectedCategories() {
-      return Array.from(document.querySelectorAll('.preferences input:checked')).map(cb => cb.value);
-    }
+    async function fetchNews(category) {
+      document.getElementById('loading').style.display = "block";
+      document.getElementById('news').innerHTML = "";
 
-    function savePreferences() {
-      const selected = getSelectedCategories();
-      localStorage.setItem("selectedCategories", JSON.stringify(selected));
-      loadNews();
-    }
+      try {
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feeds[category])}`);
+        const data = await res.json();
+        
+        let newsHtml = data.items.slice(0, 5).map(item => `
+          <div class="news-card">
+            <strong>${category.toUpperCase()}</strong>
+            <a href="${item.link}" target="_blank">${item.title}</a>
+            <small>${new Date(item.pubDate).toLocaleString()}</small>
+          </div>
+        `).join("");
 
-    function restorePreferences() {
-      const saved = JSON.parse(localStorage.getItem("selectedCategories") || "[]");
-      document.querySelectorAll('.preferences input').forEach(input => {
-        input.checked = saved.includes(input.value);
-      });
-    }
-
-    async function fetchFeed(url) {
-      const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
-      const data = await res.json();
-      return data.items.slice(0, 5);
-    }
-
-    async function loadNews() {
-      document.getElementById('news').innerHTML = "Loading...";
-      const categories = getSelectedCategories();
-      const allNews = [];
-
-      for (let category of categories) {
-        const feedUrl = feeds[category];
-        try {
-          const items = await fetchFeed(feedUrl);
-          items.forEach(item => {
-            allNews.push(`
-              <div class="news-item">
-                <div><strong>${category.toUpperCase()}</strong></div>
-                <a href="${item.link}" target="_blank">${item.title}</a>
-                <div><small>${new Date(item.pubDate).toLocaleString()}</small></div>
-              </div>
-            `);
-          });
-        } catch (e) {
-          console.error("Error fetching", category, e);
-        }
+        document.getElementById('news').innerHTML = newsHtml;
+      } catch (error) {
+        document.getElementById('news').innerHTML = `<p>Error loading ${category} news.</p>`;
       }
-
-      document.getElementById('news').innerHTML = allNews.join('');
+      
+      document.getElementById('loading').style.display = "none";
     }
 
-    // On page load
-    restorePreferences();
-    loadNews();
+    function loadNews(category) {
+      document.querySelectorAll('.nav button').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.nav button:nth-child(${Object.keys(feeds).indexOf(category.add('active');
+      fetchNews(category);
+    }
+
+    // Load default category on page load
+    loadNews('general');
   </script>
+
 </body>
 </html>
