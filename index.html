@@ -1,23 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personalized News (RSS)</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        .container { max-width: 600px; margin: auto; }
-        .categories button { margin: 5px; padding: 10px; cursor: pointer; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Personalized News</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 10px; background: #f4f4f4; color: #333; max-width: 800px; margin: auto; }
+    h1 { text-align: center; }
+    .preferences { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; }
+    label { background: #fff; padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
+    button { margin-top: 10px; padding: 10px 16px; font-size: 16px; background-color: #0077cc; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    .news-item { background: #fff; padding: 12px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    .news-item a { text-decoration: none; color: #0077cc; font-weight: bold; }
+    .news-item small { color: #555; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>News Feed (RSS)</h1>
-        <div class="categories">
-            <button data-category="world">World News</button>
-            <button data-category="technology">Technology</button>
-            <button data-category="business">Business</button>
-            <button data-category="cricket">Cricket</button>
-            <button data-category="india">India News</button>
-            <button data-category="bollywood">Bollywood News</button>
-            <button data-category="
+  <h1>My Personalized News</h1>
+
+  <div class="preferences">
+    <label><input type="checkbox" value="technology" /> Technology</label>
+    <label><input type="checkbox" value="world" /> World</label>
+    <label><input type="checkbox" value="india" /> India</label>
+    <label><input type="checkbox" value="cricket" /> Cricket</label>
+    <label><input type="checkbox" value="bollywood" /> Bollywood</label>
+    <label><input type="checkbox" value="finance" /> Finance</label>
+    <label><input type="checkbox" value="startups" /> Startups</label>
+  </div>
+
+  <button onclick="savePreferences()">Save Preferences</button>
+  <div id="news"></div>
+
+  <script>
+    const feeds = {
+      technology: ["https://feeds.bbci.co.uk/news/technology/rss.xml"],
+      world: ["https://feeds.bbci.co.uk/news/world/rss.xml"],
+      india: ["https://feeds.feedburner.com/ndtvnews-india-news", "https://timesofindia.indiatimes.com/rss.cms"],
+      cricket: ["https://www.espncricinfo.com/rss/content/story/feeds/0.xml"],
+      bollywood:
