@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ashok Chindam News version 1</title>
+  <title>Ashok Chindam News version 2</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 10px; background: #f4f4f4; color: #333; max-width: 800px; margin: auto; }
     h1 { text-align: center; }
@@ -16,7 +16,7 @@
   </style>
 </head>
 <body>
-  <h1>Ashok Chindam News version 1</h1>
+  <h1>Ashok Chindam News version 2</h1>
 
   <div class="preferences">
     <label><input type="checkbox" value="technology" /> Technology</label>
@@ -29,6 +29,7 @@
   </div>
 
   <button onclick="savePreferences()">Save Preferences</button>
+  <button onclick="loadNews()">Refresh News</button>
   <div id="news"></div>
 
   <script>
@@ -38,7 +39,7 @@
       india: "https://feeds.feedburner.com/ndtvnews-india-news",
       cricket: "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
       bollywood: "https://www.bollywoodhungama.com/rss/news.xml",
-      finance: "https://www.moneycontrol.com/rss/latestnews.xml",
+      finance: "https://www.cnbc.com/id/15839069/device/rss/rss.html",
       startups: "https://yourstory.com/feed"
     };
 
