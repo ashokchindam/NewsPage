@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Personalized News</title>
+  <title>Ashok Chindam News version 1</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 10px; background: #f4f4f4; color: #333; max-width: 800px; margin: auto; }
     h1 { text-align: center; }
@@ -16,7 +16,7 @@
   </style>
 </head>
 <body>
-  <h1>My Personalized News</h1>
+  <h1>Ashok Chindam News version 1</h1>
 
   <div class="preferences">
     <label><input type="checkbox" value="technology" /> Technology</label>
@@ -33,8 +33,72 @@
 
   <script>
     const feeds = {
-      technology: ["https://feeds.bbci.co.uk/news/technology/rss.xml"],
-      world: ["https://feeds.bbci.co.uk/news/world/rss.xml"],
-      india: ["https://feeds.feedburner.com/ndtvnews-india-news", "https://timesofindia.indiatimes.com/rss.cms"],
-      cricket: ["https://www.espncricinfo.com/rss/content/story/feeds/0.xml"],
-      bollywood:
+      technology: "https://feeds.bbci.co.uk/news/technology/rss.xml",
+      world: "https://feeds.bbci.co.uk/news/world/rss.xml",
+      india: "https://feeds.feedburner.com/ndtvnews-india-news",
+      cricket: "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
+      bollywood: "https://www.bollywoodhungama.com/rss/news.xml",
+      finance: "https://www.moneycontrol.com/rss/latestnews.xml",
+      startups: "https://yourstory.com/feed"
+    };
+
+    function getSelectedCategories() {
+      return Array.from(document.querySelectorAll('.preferences input:checked')).map(cb => cb.value);
+    }
+
+    function savePreferences() {
+      const selected = getSelectedCategories();
+      localStorage.setItem("selectedCategories", JSON.stringify(selected));
+      loadNews();
+    }
+
+    function restorePreferences() {
+      const saved = JSON.parse(localStorage.getItem("selectedCategories") || "[]");
+      document.querySelectorAll('.preferences input').forEach(input => {
+        input.checked = saved.includes(input.value);
+      });
+    }
+
+    async function fetchFeed(url) {
+      try {
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        return data.items.slice(0, 5);
+      } catch (error) {
+        console.error("Error fetching", url, error);
+        return [];
+      }
+    }
+
+    async function loadNews() {
+      document.getElementById('news').innerHTML = "Loading...";
+      const categories = getSelectedCategories();
+      const allNews = [];
+
+      for (let category of categories) {
+        const feedUrl = feeds[category];
+
+        try {
+          const items = await fetchFeed(feedUrl);
+          items.forEach(item => {
+            allNews.push(`
+              <div class="news-item">
+                <div><strong>${category.toUpperCase()}</strong></div>
+                <a href="${item.link}" target="_blank">${item.title}</a>
+                <div><small>${new Date(item.pubDate).toLocaleString()}</small></div>
+              </div>
+            `);
+          });
+        } catch (e) {
+          console.error("Error fetching", category, e);
+        }
+      }
+
+      document.getElementById('news').innerHTML = allNews.length ? allNews.join('') : "<p>No news available.</p>";
+    }
+
+    restorePreferences();
+    loadNews();
+  </script>
+</body>
+</html>
