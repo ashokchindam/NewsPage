@@ -18,7 +18,7 @@
   </style>
 </head>
 <body>
-  <h1>Ashok Chindam News 1</h1>
+  <h1>Ashok Chindam News 2</h1>
 
   <label for="sort">Sort By:</label>
   <select id="sort" onchange="loadNews()">
@@ -54,7 +54,7 @@
       finance: "https://www.cnbc.com/id/15839069/device/rss/rss.html",
       telangana: ["https://telugu.hindustantimes.com/rss/telangana", "https://tupaki.com/rss"],
       singapore: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=10416",
-      tollywood: "https://www.teluguone.com/rss/film-news.rss" // Updated to fetch Film News only
+      tollywood: "https://www.teluguone.com/rss/film-news.rss" // Tollywood Film News
     };
 
     function getSelectedCategories() {
@@ -86,20 +86,28 @@
     }
 
     async function fetchTollywoodNews() {
-      const RSS_URL = "https://www.teluguone.com/rss/film-news.rss"; // Updated Tollywood film news RSS URL
+      const RSS_URL = "https://www.teluguone.com/rss/film-news.rss"; // Updated to Film News
       try {
-        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`);
-        const data = await res.json();
+        let response = await fetch(RSS_URL);
+        let data = await response.text();
+
+        let parser = new DOMParser();
+        let xml = parser.parseFromString(data, "text/xml");
+        let items = xml.querySelectorAll("item");
 
         let container = document.getElementById("news");
         container.innerHTML = "";
 
-        data.items.forEach(item => {
+        items.forEach(item => {
+          let title = item.querySelector("title").textContent;
+          let link = item.querySelector("link").textContent;
+          let description = item.querySelector("description")?.textContent || "No summary available.";
+
           let newsItem = `
               <div class="news-card">
-                <a href="${item.link}" target="_blank">${item.title}</a>
+                <a href="${link}" target="_blank">${title}</a>
                 <small><strong>TOLLYWOOD - FILM NEWS</strong></small>
-                <p>${item.description}</p>
+                <p>${description}</p>
               </div>`;
           container.innerHTML += newsItem;
         });
