@@ -36,7 +36,6 @@
     <label><input type="checkbox" value="finance" /> Finance</label>
     <label><input type="checkbox" value="telangana" /> Telangana</label>
     <label><input type="checkbox" value="singapore" /> Singapore</label>
-    <label><input type="checkbox" value="tollywood" /> Tollywood</label> <!-- New category -->
   </div>
 
   <button onclick="savePreferences()">Save Preferences</button>
@@ -46,4 +45,80 @@
 
   <script>
     const feeds = {
-      technology: "https://feeds.bbci.co.uk/news
+      technology: "https://feeds.bbci.co.uk/news/technology/rss.xml",
+      world: "https://feeds.bbci.co.uk/news/world/rss.xml",
+      india: "https://feeds.feedburner.com/ndtvnews-india-news",
+      cricket: "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
+      bollywood: "https://www.bollywoodhungama.com/rss/news.xml",
+      finance: "https://www.cnbc.com/id/15839069/device/rss/rss.html",
+      telangana: ["https://telugu.hindustantimes.com/rss/telangana", "https://tupaki.com/rss"],
+      singapore: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=10416"
+    };
+
+    function getSelectedCategories() {
+      return Array.from(document.querySelectorAll('.preferences input:checked')).map(cb => cb.value);
+    }
+
+    function savePreferences() {
+      const selected = getSelectedCategories();
+      localStorage.setItem("selectedCategories", JSON.stringify(selected));
+      loadNews();
+    }
+
+    function restorePreferences() {
+      const saved = JSON.parse(localStorage.getItem("selectedCategories") || "[]");
+      document.querySelectorAll('.preferences input').forEach(input => {
+        input.checked = saved.includes(input.value);
+      });
+    }
+
+    async function fetchFeed(url) {
+      try {
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        return data.items.slice(0, 5);
+      } catch (error) {
+        console.error("Error fetching", url, error);
+        return [];
+      }
+    }
+
+    function sortNews(newsItems) {
+      const sortBy = document.getElementById("sort").value;
+      if (sortBy === "date") {
+        return newsItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+      } else if (sortBy === "title") {
+        return newsItems.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (sortBy === "category") {
+        return newsItems.sort((a, b) => a.category.localeCompare(b.category));
+      }
+      return newsItems;
+    }
+
+    async function loadNews() {
+      document.getElementById('news').innerHTML = "Loading...";
+      const categories = getSelectedCategories();
+      let allNews = [];
+
+      for (let category of categories) {
+        const feedUrls = Array.isArray(feeds[category]) ? feeds[category] : [feeds[category]];
+
+        for (let feedUrl of feedUrls) {
+          try {
+            const items = await fetchFeed(feedUrl);
+            items.forEach(item => {
+              allNews.push({
+                category,
+                pubDate: item.pubDate,
+                title: item.title,
+                link: item.link,
+                image: item.enclosure?.link
+              });
+            });
+          } catch (e) {
+            console.error("Error fetching", category, e);
+          }
+        }
+      }
+
+      allNews[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/lzh-yi/Web-Fork-/tree/024b3e55587afdf9f05a677613a75f24e3d1803e/03-CSS%E8%BF%9B%E9%98%B6%2F04-%E5%A6%82%E4%BD%95%E8%AE%A9%E4%B8%80%E4%B8%AA%E5%85%83%E7%B4%A0%E6%B0%B4%E5%B9%B3%E5%9E%82%E7%9B%B4%E5%B1%85%E4%B8%AD%EF%BC%9F.md?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "1")
