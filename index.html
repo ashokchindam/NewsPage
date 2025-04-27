@@ -18,7 +18,7 @@
   </style>
 </head>
 <body>
-  <h1>Ashok Chindam News 2</h1>
+  <h1>Ashok Chindam News</h1>
 
   <label for="sort">Sort By:</label>
   <select id="sort" onchange="loadNews()">
@@ -36,7 +36,6 @@
     <label><input type="checkbox" value="finance" /> Finance</label>
     <label><input type="checkbox" value="telangana" /> Telangana</label>
     <label><input type="checkbox" value="singapore" /> Singapore</label>
-    <label><input type="checkbox" value="tollywood" /> Tollywood</label> <!-- New category -->
   </div>
 
   <button onclick="savePreferences()">Save Preferences</button>
@@ -53,8 +52,7 @@
       bollywood: "https://www.bollywoodhungama.com/rss/news.xml",
       finance: "https://www.cnbc.com/id/15839069/device/rss/rss.html",
       telangana: ["https://telugu.hindustantimes.com/rss/telangana", "https://tupaki.com/rss"],
-      singapore: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=10416",
-      tollywood: "https://www.teluguone.com/rss/film-news.rss" // Tollywood Film News
+      singapore: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=10416"
     };
 
     function getSelectedCategories() {
@@ -85,35 +83,55 @@
       }
     }
 
-    async function fetchTollywoodNews() {
-      const RSS_URL = "https://www.teluguone.com/rss/film-news.rss"; // Updated to Film News
-      try {
-        let response = await fetch(RSS_URL);
-        let data = await response.text();
-
-        let parser = new DOMParser();
-        let xml = parser.parseFromString(data, "text/xml");
-        let items = xml.querySelectorAll("item");
-
-        let container = document.getElementById("news");
-        container.innerHTML = "";
-
-        items.forEach(item => {
-          let title = item.querySelector("title").textContent;
-          let link = item.querySelector("link").textContent;
-          let description = item.querySelector("description")?.textContent || "No summary available.";
-
-          let newsItem = `
-              <div class="news-card">
-                <a href="${link}" target="_blank">${title}</a>
-                <small><strong>TOLLYWOOD - FILM NEWS</strong></small>
-                <p>${description}</p>
-              </div>`;
-          container.innerHTML += newsItem;
-        });
-      } catch (error) {
-        console.error("Error fetching Tollywood film news:", error);
+    function sortNews(newsItems) {
+      const sortBy = document.getElementById("sort").value;
+      if (sortBy === "date") {
+        return newsItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+      } else if (sortBy === "title") {
+        return newsItems.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (sortBy === "category") {
+        return newsItems.sort((a, b) => a.category.localeCompare(b.category));
       }
+      return newsItems;
+    }
+
+    async function loadNews() {
+      document.getElementById('news').innerHTML = "Loading...";
+      const categories = getSelectedCategories();
+      let allNews = [];
+
+      for (let category of categories) {
+        const feedUrls = Array.isArray(feeds[category]) ? feeds[category] : [feeds[category]];
+
+        for (let feedUrl of feedUrls) {
+          try {
+            const items = await fetchFeed(feedUrl);
+            items.forEach(item => {
+              allNews.push({
+                category,
+                pubDate: item.pubDate,
+                title: item.title,
+                link: item.link,
+                image: item.enclosure?.link
+              });
+            });
+          } catch (e) {
+            console.error("Error fetching", category, e);
+          }
+        }
+      }
+
+      allNews = sortNews(allNews);
+
+      document.getElementById('news').innerHTML = allNews.length
+        ? allNews.map(item => `
+            <div class="news-card">
+              ${item.image ? `<img src="${item.image}" alt="${item.category} image">` : ""}
+              <a href="${item.link}" target="_blank">${item.title}</a>
+              <small><strong>${item.category.toUpperCase()}</strong> | ${new Date(item.pubDate).toLocaleString()}</small>
+            </div>
+          `).join('')
+        : "<p>No news available.</p>";
     }
 
     restorePreferences();
