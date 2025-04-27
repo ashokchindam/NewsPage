@@ -1,157 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ashok Chindam News</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-            background-color: #f4f4f4;
-        }
-
-        header {
-            background-color: #333;
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        select, button {
-            padding: 10px;
-            font-size: 16px;
-            border: none;
-        }
-
-        button {
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        #newsContainer, #tollywood-feed {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-
-        .news {
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .news img {
-            width: 100%;
-            border-radius: 10px;
-        }
-
-        .news h2 {
-            font-size: 20px;
-        }
-
-        .news a {
-            text-decoration: none;
-            color: #007bff;
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ashok Chindam News version 11</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 10px; color: #333; max-width: 800px; margin: auto; background: #f8f9fa; }
+    h1 { text-align: center; }
+    .preferences { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; }
+    label { background: #fff; padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
+    button { margin-top: 10px; padding: 10px 16px; font-size: 16px; background-color: #0077cc; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
+    .news-container { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+    .news-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); width: 280px; }
+    .news-card img { width: 100%; border-radius: 6px; margin-bottom: 8px; }
+    .news-card a { text-decoration: none; color: #0077cc; font-weight: bold; display: block; margin-bottom: 5px; }
+    .news-card small { color: #777; display: block; margin-top: 5px; font-size: 12px; }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Ashok Chindam News</h1>
-        <select id="categorySelect">
-            <option value="general">General</option>
-            <option value="business">Business</option>
-            <option value="technology">Technology</option>
-            <option value="sports">Sports</option>
-            <option value="entertainment">Entertainment</option>
-        </select>
-        <button onclick="fetchNews()">Load News</button>
-    </header>
-    
-    <main id="newsContainer"></main>
+  <h1>Ashok Chindam News version 11</h1>
 
-    <!-- Tollywood News Section -->
-    <section id="tollywood-news">
-        <h2>Tollywood News</h2>
-        <div id="tollywood-feed"></div>
-    </section>
+  <label for="sort">Sort By:</label>
+  <select id="sort" onchange="loadNews()">
+    <option value="date">Date (Newest First)</option>
+    <option value="category">Category</option>
+    <option value="title">Title (A–Z)</option>
+  </select>
 
-    <script>
-        const API_KEY = "80900dcec9c84df894db5369bd93b1b8"; // Replace with your actual key!
+  <div class="preferences">
+    <label><input type="checkbox" value="technology" /> Technology</label>
+    <label><input type="checkbox" value="world" /> World</label>
+    <label><input type="checkbox" value="india" /> India</label>
+    <label><input type="checkbox" value="cricket" /> Cricket</label>
+    <label><input type="checkbox" value="bollywood" /> Bollywood</label>
+    <label><input type="checkbox" value="finance" /> Finance</label>
+    <label><input type="checkbox" value="telangana" /> Telangana</label>
+    <label><input type="checkbox" value="singapore" /> Singapore</label>
+    <label><input type="checkbox" value="tollywood" /> Tollywood</label> <!-- New category -->
+  </div>
 
-        async function fetchNews() {
-            let category = document.getElementById("categorySelect").value;
-            
-            let cacheKey = `news-${category}`;
-            let cachedData = localStorage.getItem(cacheKey);
-            let cacheTime = localStorage.getItem(`${cacheKey}-time`);
-            
-            if (cachedData && cacheTime && (Date.now() - cacheTime < 30 * 60 * 1000)) {
-                displayNews(JSON.parse(cachedData));
-                return;
-            }
+  <button onclick="savePreferences()">Save Preferences</button>
+  <button onclick="loadNews()">Refresh News</button>
 
-            let url = `https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=${API_KEY}`;
-            
-            try {
-                let response = await fetch(url);
-                let data = await response.json();
+  <div class="news-container" id="news"></div>
 
-                localStorage.setItem(cacheKey, JSON.stringify(data.articles));
-                localStorage.setItem(`${cacheKey}-time`, Date.now());
-
-                displayNews(data.articles);
-            } catch (error) {
-                console.error("Error fetching news:", error);
-                document.getElementById("newsContainer").innerHTML = "<p>Unable to load news. Try again later.</p>";
-            }
-        }
-
-        async function fetchTollywoodNews() {
-            const RSS_URL = "https://www.teluguone.com/news/rssDetails.rss";
-            try {
-                let response = await fetch(RSS_URL);
-                let data = await response.text();
-
-                let parser = new DOMParser();
-                let xml = parser.parseFromString(data, "text/xml");
-                let items = xml.querySelectorAll("item");
-
-                let container = document.getElementById("tollywood-feed");
-                container.innerHTML = "";
-
-                items.forEach(item => {
-                    let title = item.querySelector("title").textContent;
-                    let link = item.querySelector("link").textContent;
-                    let description = item.querySelector("description")?.textContent || "No summary available.";
-
-                    let newsItem = `
-                        <div class="news">
-                            <h2>${title}</h2>
-                            <p>${description}</p>
-                            <a href="${link}" target="_blank">Read More</a>
-                        </div>`;
-                    container.innerHTML += newsItem;
-                });
-            } catch (error) {
-                console.error("Error fetching Tollywood news:", error);
-            }
-        }
-
-        // Automatically fetch Tollywood news on page load
-        document.addEventListener("DOMContentLoaded", fetchTollywoodNews);
-    </script>
-</body>
-</html>
+  <script>
+    const feeds = {
+      technology: "https://feeds.bbci.co.uk/news
