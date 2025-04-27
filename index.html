@@ -36,6 +36,7 @@
     <label><input type="checkbox" value="finance" /> Finance</label>
     <label><input type="checkbox" value="telangana" /> Telangana</label>
     <label><input type="checkbox" value="singapore" /> Singapore</label>
+    <label><input type="checkbox" value="tollywood" /> Tollywood</label> <!-- New category -->
   </div>
 
   <button onclick="savePreferences()">Save Preferences</button>
@@ -52,7 +53,8 @@
       bollywood: "https://www.bollywoodhungama.com/rss/news.xml",
       finance: "https://www.cnbc.com/id/15839069/device/rss/rss.html",
       telangana: ["https://telugu.hindustantimes.com/rss/telangana", "https://tupaki.com/rss"],
-      singapore: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=10416"
+      singapore: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=10416",
+      tollywood: "https://www.teluguone.com/news/rssDetails.rss" // Tollywood added
     };
 
     function getSelectedCategories() {
