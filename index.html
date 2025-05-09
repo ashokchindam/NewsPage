@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ashok Chindam News version 2</title>
+  <title>Ashok Chindam News version 4</title>
   <link rel="manifest" href="manifest.json" />
   <style>
     body { font-family: Arial, sans-serif; padding: 10px; color: #333; max-width: 800px; margin: auto; background: #f8f9fa; }
     h1 { text-align: center; }
+    .top-right-link { position: fixed; top: 10px; right: 10px; }
     .preferences { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; }
     label { background: #fff; padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
     button { margin-top: 10px; padding: 10px 16px; font-size: 16px; background-color: #0077cc; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
@@ -16,14 +17,37 @@
     .news-card img { width: 100%; border-radius: 6px; margin-bottom: 8px; }
     .news-card a { text-decoration: none; color: #0077cc; font-weight: bold; display: block; margin-bottom: 5px; }
     .news-card small { color: #777; display: block; margin-top: 5px; font-size: 12px; }
-    #installAppLink { position: absolute; top: 10px; right: 10px; text-decoration: underline; color: #0077cc; cursor: pointer; font-size: 14px; display: none; }
   </style>
 </head>
 <body>
-  <div id="installAppLink">Download as App</div>
-  <h1>Ashok Chindam News 3</h1>
 
-  <!-- Existing content continues here -->
+  <a href="#" class="top-right-link" id="installBtn" style="display:none;">Download as App</a>
+
+  <h1>Ashok Chindam News 4</h1>
+
+  <label for="sort">Sort By:</label>
+  <select id="sort" onchange="loadNews()">
+    <option value="date">Date (Newest First)</option>
+    <option value="category">Category</option>
+    <option value="title">Title (A–Z)</option>
+  </select>
+
+  <div class="preferences">
+    <label><input type="checkbox" value="technology" /> Technology</label>
+    <label><input type="checkbox" value="world" /> World</label>
+    <label><input type="checkbox" value="india" /> India</label>
+    <label><input type="checkbox" value="cricket" /> Cricket</label>
+    <label><input type="checkbox" value="bollywood" /> Bollywood</label>
+    <label><input type="checkbox" value="finance" /> Finance</label>
+    <label><input type="checkbox" value="telangana" /> Telangana</label>
+    <label><input type="checkbox" value="singapore" /> Singapore</label>
+    <label><input type="checkbox" value="tollywood" /> Tollywood</label>
+  </div>
+
+  <button onclick="savePreferences()">Save Preferences</button>
+  <button onclick="loadNews()">Refresh News</button>
+
+  <div class="news-container" id="news"></div>
 
   <script>
     let deferredPrompt;
@@ -31,20 +55,114 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      document.getElementById('installAppLink').style.display = 'block';
+      document.getElementById('installBtn').style.display = 'inline';
     });
 
-    document.getElementById('installAppLink').addEventListener('click', async () => {
+    document.getElementById('installBtn').addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        const choiceResult = await deferredPrompt.userChoice;
-        if (choiceResult.outcome === 'accepted') {
-          console.log('App installed');
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('User accepted the install prompt');
         }
         deferredPrompt = null;
-        document.getElementById('installAppLink').style.display = 'none';
+        document.getElementById('installBtn').style.display = 'none';
       }
     });
+
+    const feeds = {
+      technology: "https://feeds.bbci.co.uk/news/technology/rss.xml",
+      world: "https://feeds.bbci.co.uk/news/world/rss.xml",
+      india: "https://feeds.feedburner.com/ndtvnews-india-news",
+      cricket: "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
+      bollywood: "https://www.bollywoodhungama.com/rss/news.xml",
+      finance: "https://www.cnbc.com/id/15839069/device/rss/rss.html",
+      telangana: ["https://telugu.hindustantimes.com/rss/telangana", "https://tupaki.com/rss"],
+      singapore: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=10416",
+      tollywood: "https://www.ragalahari.com/rss/tollywood-news.aspx"
+    };
+
+    function getSelectedCategories() {
+      return Array.from(document.querySelectorAll('.preferences input:checked')).map(cb => cb.value);
+    }
+
+    function savePreferences() {
+      const selected = getSelectedCategories();
+      localStorage.setItem("selectedCategories", JSON.stringify(selected));
+      loadNews();
+    }
+
+    function restorePreferences() {
+      const saved = JSON.parse(localStorage.getItem("selectedCategories") || "[]");
+      document.querySelectorAll('.preferences input').forEach(input => {
+        input.checked = saved.includes(input.value);
+      });
+    }
+
+    async function fetchFeed(url) {
+      try {
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+        return data.items.slice(0, 5);
+      } catch (error) {
+        console.error("Error fetching", url, error);
+        return [];
+      }
+    }
+
+    function sortNews(newsItems) {
+      const sortBy = document.getElementById("sort").value;
+      if (sortBy === "date") {
+        return newsItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+      } else if (sortBy === "title") {
+        return newsItems.sort((a, b) => a.title.localeCompare(b.title));
+      } else if (sortBy === "category") {
+        return newsItems.sort((a, b) => a.category.localeCompare(b.category));
+      }
+      return newsItems;
+    }
+
+    async function loadNews() {
+      document.getElementById('news').innerHTML = "Loading...";
+      const categories = getSelectedCategories();
+      let allNews = [];
+
+      for (let category of categories) {
+        const feedUrls = Array.isArray(feeds[category]) ? feeds[category] : [feeds[category]];
+
+        for (let feedUrl of feedUrls) {
+          try {
+            const items = await fetchFeed(feedUrl);
+            items.forEach(item => {
+              allNews.push({
+                category,
+                pubDate: item.pubDate,
+                title: item.title,
+                link: item.link,
+                image: item.enclosure?.link
+              });
+            });
+          } catch (e) {
+            console.error("Error fetching", category, e);
+          }
+        }
+      }
+
+      allNews = sortNews(allNews);
+
+      document.getElementById('news').innerHTML = allNews.length
+        ? allNews.map(item => `
+            <div class="news-card">
+              ${item.image ? `<img src="${item.image}" alt="${item.category} image">` : ""}
+              <a href="${item.link}" target="_blank">${item.title}</a>
+              <small><strong>${item.category.toUpperCase()}</strong> | ${new Date(item.pubDate).toLocaleString()}</small>
+            </div>
+          `).join('')
+        : "<p>No news available.</p>";
+    }
+
+    restorePreferences();
+    loadNews();
   </script>
 </body>
 </html>
