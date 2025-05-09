@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ashok Chindam News version 4</title>
-  <link rel="manifest" href="manifest.json" />
+  <title>Ashok Chindam News version 14</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 10px; color: #333; max-width: 800px; margin: auto; background: #f8f9fa; }
     h1 { text-align: center; }
-    .top-right-link { position: fixed; top: 10px; right: 10px; }
     .preferences { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; }
     label { background: #fff; padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
     button { margin-top: 10px; padding: 10px 16px; font-size: 16px; background-color: #0077cc; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
@@ -20,10 +18,7 @@
   </style>
 </head>
 <body>
-
-  <a href="#" class="top-right-link" id="installBtn" style="display:none;">Download as App</a>
-
-  <h1>Ashok Chindam News 6</h1>
+  <h1>Ashok Chindam News 1</h1>
 
   <label for="sort">Sort By:</label>
   <select id="sort" onchange="loadNews()">
@@ -50,26 +45,6 @@
   <div class="news-container" id="news"></div>
 
   <script>
-    let deferredPrompt;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installBtn').style.display = 'inline';
-    });
-
-    document.getElementById('installBtn').addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          console.log('User accepted the install prompt');
-        }
-        deferredPrompt = null;
-        document.getElementById('installBtn').style.display = 'none';
-      }
-    });
-
     const feeds = {
       technology: "https://feeds.bbci.co.uk/news/technology/rss.xml",
       world: "https://feeds.bbci.co.uk/news/world/rss.xml",
@@ -129,7 +104,6 @@
 
       for (let category of categories) {
         const feedUrls = Array.isArray(feeds[category]) ? feeds[category] : [feeds[category]];
-
         for (let feedUrl of feedUrls) {
           try {
             const items = await fetchFeed(feedUrl);
@@ -148,10 +122,10 @@
         }
       }
 
-      allNews = sortNews(allNews);
+      const sorted = sortNews(allNews);
 
-      document.getElementById('news').innerHTML = allNews.length
-        ? allNews.map(item => `
+      document.getElementById('news').innerHTML = sorted.length
+        ? sorted.map(item => `
             <div class="news-card">
               ${item.image ? `<img src="${item.image}" alt="${item.category} image">` : ""}
               <a href="${item.link}" target="_blank">${item.title}</a>
@@ -163,6 +137,21 @@
 
     restorePreferences();
     loadNews();
+  </script>
+
+  <!-- iOS Add to Home Screen Prompt -->
+  <script>
+    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    const isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
+
+    if (isIos && !isInStandaloneMode) {
+      const banner = document.createElement('div');
+      banner.innerHTML = `
+        <div style="background: #fffae6; padding: 10px; text-align: center; font-size: 14px; border: 1px solid #ccc;">
+          Install this app: Tap the <strong>Share</strong> icon and then <strong>Add to Home Screen</strong>.
+        </div>`;
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
   </script>
 </body>
 </html>
