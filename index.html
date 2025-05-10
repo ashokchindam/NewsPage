@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ashok Chindam News version 14</title>
+  <title>Ashok Chindam News version 4</title>
+  <link rel="manifest" href="manifest.json" />
   <style>
     body { font-family: Arial, sans-serif; padding: 10px; color: #333; max-width: 800px; margin: auto; background: #f8f9fa; }
     h1 { text-align: center; }
+    .top-right-link { position: fixed; top: 10px; right: 10px; }
     .preferences { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px; }
     label { background: #fff; padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
     button { margin-top: 10px; padding: 10px 16px; font-size: 16px; background-color: #0077cc; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
@@ -15,34 +17,13 @@
     .news-card img { width: 100%; border-radius: 6px; margin-bottom: 8px; }
     .news-card a { text-decoration: none; color: #0077cc; font-weight: bold; display: block; margin-bottom: 5px; }
     .news-card small { color: #777; display: block; margin-top: 5px; font-size: 12px; }
-    .install-banner {
-      position: relative;
-      padding: 10px;
-      text-align: center;
-      font-size: 14px;
-      border: 1px solid #ccc;
-    }
-    .install-banner .close-btn {
-      position: absolute;
-      top: 5px;
-      right: 10px;
-      background: none;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #addToHomeBtn {
-      background: #0077cc;
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: inline-block;
-    }
   </style>
 </head>
 <body>
-  <h1>Ashok Chindam News 3</h1>
+
+  <a href="#" class="top-right-link" id="installBtn" style="display:none;">Download as App</a>
+
+  <h1>Ashok Chindam News</h1>
 
   <label for="sort">Sort By:</label>
   <select id="sort" onchange="loadNews()">
@@ -68,9 +49,27 @@
 
   <div class="news-container" id="news"></div>
 
-  <div id="pwa-install-container"></div>
-
   <script>
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBtn').style.display = 'inline';
+    });
+
+    document.getElementById('installBtn').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        }
+        deferredPrompt = null;
+        document.getElementById('installBtn').style.display = 'none';
+      }
+    });
+
     const feeds = {
       technology: "https://feeds.bbci.co.uk/news/technology/rss.xml",
       world: "https://feeds.bbci.co.uk/news/world/rss.xml",
@@ -130,6 +129,7 @@
 
       for (let category of categories) {
         const feedUrls = Array.isArray(feeds[category]) ? feeds[category] : [feeds[category]];
+
         for (let feedUrl of feedUrls) {
           try {
             const items = await fetchFeed(feedUrl);
@@ -148,14 +148,21 @@
         }
       }
 
-      const sorted = sortNews(allNews);
+      allNews = sortNews(allNews);
 
-      document.getElementById('news').innerHTML = sorted.length
-        ? sorted.map(item => `
+      document.getElementById('news').innerHTML = allNews.length
+        ? allNews.map(item => `
             <div class="news-card">
               ${item.image ? `<img src="${item.image}" alt="${item.category} image">` : ""}
               <a href="${item.link}" target="_blank">${item.title}</a>
               <small><strong>${item.category.toUpperCase()}</strong> | ${new Date(item.pubDate).toLocaleString()}</small>
             </div>
           `).join('')
-        :
+        : "<p>No news available.</p>";
+    }
+
+    restorePreferences();
+    loadNews();
+  </script>
+</body>
+</html>
