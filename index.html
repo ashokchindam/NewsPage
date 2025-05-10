@@ -31,10 +31,18 @@
       font-size: 16px;
       cursor: pointer;
     }
+    #addToHomeBtn {
+      background: #0077cc;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
-  <h1>Ashok Chindam News 1</h1>
+  <h1>Ashok Chindam News 2</h1>
 
   <label for="sort">Sort By:</label>
   <select id="sort" onchange="loadNews()">
@@ -59,6 +67,8 @@
   <button onclick="loadNews()">Refresh News</button>
 
   <div class="news-container" id="news"></div>
+
+  <div id="pwa-install-container"></div>
 
   <script>
     const feeds = {
@@ -155,45 +165,54 @@
     loadNews();
   </script>
 
-  <!-- PWA Install Banner -->
   <script>
+    let deferredPrompt;
     const ua = navigator.userAgent.toLowerCase();
     const isIos = /iphone|ipad|ipod/.test(ua);
     const isAndroid = /android/.test(ua);
-    const isMobile = isIos || isAndroid;
-    const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-    function createDismissibleBanner(message, bgColor) {
-      const banner = document.createElement('div');
-      banner.className = 'install-banner';
-      banner.style.background = bgColor;
-      banner.innerHTML = `
-        <button class="close-btn" onclick="this.parentElement.remove()">×</button>
-        ${message}`;
-      document.body.insertBefore(banner, document.body.firstChild);
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (isAndroid) {
+        showAddToHomeLink();
+      }
+    });
+
+    function createBanner(content, bgColor) {
+      const div = document.createElement('div');
+      div.className = 'install-banner';
+      div.style.background = bgColor;
+      div.innerHTML = `<button class="close-btn" onclick="this.parentElement.remove()">×</button>${content}`;
+      document.getElementById('pwa-install-container').appendChild(div);
     }
 
-    if (isMobile && !isInStandalone) {
+    function showAddToHomeLink() {
+      createBanner('<a id="addToHomeBtn">Add to Home</a>', '#e6f7ff');
+      document.getElementById('addToHomeBtn').addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const choice = await deferredPrompt.userChoice;
+          deferredPrompt = null;
+        }
+      });
+    }
+
+    if (!isStandalone) {
       if (isIos) {
         if (isSafari) {
-          createDismissibleBanner(
+          createBanner(
             'iOS: Tap the <strong>Share</strong> icon in Safari and select <strong>"Add to Home Screen"</strong>.',
-            '#fffae6'
+            '#fff8e1'
           );
         } else {
-          createDismissibleBanner(
+          createBanner(
             'iOS: Please open this site in <strong>Safari</strong> to install the app.',
             '#ffe6e6'
           );
         }
-      }
-
-      if (isAndroid) {
-        createDismissibleBanner(
-          'Android: Tap the <strong>menu (⋮)</strong> button in your browser and choose <strong>"Add to Home screen"</strong>.',
-          '#e6fff0'
-        );
       }
     }
   </script>
