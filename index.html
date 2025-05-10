@@ -15,6 +15,22 @@
     .news-card img { width: 100%; border-radius: 6px; margin-bottom: 8px; }
     .news-card a { text-decoration: none; color: #0077cc; font-weight: bold; display: block; margin-bottom: 5px; }
     .news-card small { color: #777; display: block; margin-top: 5px; font-size: 12px; }
+    .install-banner {
+      position: relative;
+      padding: 10px;
+      text-align: center;
+      font-size: 14px;
+      border: 1px solid #ccc;
+    }
+    .install-banner .close-btn {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -139,18 +155,46 @@
     loadNews();
   </script>
 
-  <!-- iOS Add to Home Screen Prompt -->
+  <!-- PWA Install Banner -->
   <script>
-    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    const isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
+    const ua = navigator.userAgent.toLowerCase();
+    const isIos = /iphone|ipad|ipod/.test(ua);
+    const isAndroid = /android/.test(ua);
+    const isMobile = isIos || isAndroid;
+    const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    if (isIos && !isInStandaloneMode) {
+    function createDismissibleBanner(message, bgColor) {
       const banner = document.createElement('div');
+      banner.className = 'install-banner';
+      banner.style.background = bgColor;
       banner.innerHTML = `
-        <div style="background: #fffae6; padding: 10px; text-align: center; font-size: 14px; border: 1px solid #ccc;">
-          Install this app: Tap the <strong>Share</strong> icon and then <strong>Add to Home Screen</strong>.
-        </div>`;
+        <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+        ${message}`;
       document.body.insertBefore(banner, document.body.firstChild);
+    }
+
+    if (isMobile && !isInStandalone) {
+      if (isIos) {
+        if (isSafari) {
+          createDismissibleBanner(
+            'iOS: Tap the <strong>Share</strong> icon in Safari and select <strong>"Add to Home Screen"</strong>.',
+            '#fffae6'
+          );
+        } else {
+          createDismissibleBanner(
+            'iOS: Please open this site in <strong>Safari</strong> to install the app.',
+            '#ffe6e6'
+          );
+        }
+      }
+
+      if (isAndroid) {
+        createDismissibleBanner(
+          'Android: Tap the <strong>menu (⋮)</strong> button in your browser and choose <strong>"Add to Home screen"</strong>.',
+          '#e6fff0'
+        );
+      }
     }
   </script>
 </body>
